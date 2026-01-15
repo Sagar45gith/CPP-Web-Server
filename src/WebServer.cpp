@@ -45,7 +45,7 @@ void WebServer::start() {
     while (true) {
         struct sockaddr_in client_address;
         socklen_t client_len = sizeof(client_address);
-        int new_socket = accept(server_fd, (struct sockaddr*)&client_address, &client_len);
+        int new_socket = accept(server_fd, (struct sockaddr*)&client_address, &client_len); // Accept new connection    what is client_len: length of the client address structure
         
         if (new_socket < 0) {
             perror("Accept failed");
@@ -57,16 +57,25 @@ void WebServer::start() {
             this->handle_client(new_socket);
         });
     }
+
+    
 }
 
 std::string WebServer::get_mime_type(const std::string& path) {
-    if (path.find(".html") != std::string::npos) return "text/html";
-    if (path.find(".css")  != std::string::npos) return "text/css";
-    if (path.find(".png")  != std::string::npos) return "image/png";
-    if (path.find(".jpg")  != std::string::npos) return "image/jpeg";
+    // Helper to check if string ends with specific extension
+    auto has_suffix = [&](const std::string& str, const std::string& suffix) {
+        return str.size() >= suffix.size() && 
+               str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+    };
+
+    if (has_suffix(path, ".html")) return "text/html";
+    if (has_suffix(path, ".css"))  return "text/css";
+    if (has_suffix(path, ".png"))  return "image/png";
+    if (has_suffix(path, ".jpg"))  return "image/jpeg";
+    if (has_suffix(path, ".jpeg")) return "image/jpeg";
+    
     return "text/plain";
 }
-
 std::string WebServer::load_file(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) return "";
@@ -81,9 +90,20 @@ void WebServer::handle_client(int client_socket) {
 
     std::istringstream request_stream(buffer);
     std::string method, path, version;
-    request_stream >> method >> path >> version;
+    request_stream >> method >> path >> version; //
 
-    if (path == "/") path = "/index.html";
+    // SECURITY CHECK: Block Path Traversal
+    if (path.find("..") != std::string::npos) {
+        std::string error_msg = "400 Bad Request: Invalid Path";
+        std::string response = "HTTP/1.1 400 Bad Request\r\n"
+                               "Content-Length: " + std::to_string(error_msg.size()) + "\r\n\r\n" 
+                               + error_msg;
+        send(client_socket, response.c_str(), response.size(), 0);
+        close(client_socket);
+        return; // Stop here!
+    }    
+
+    if (path == "/") path = "/index.html"; 
     std::string filepath = "www" + path;
     
     std::string content = load_file(filepath);
@@ -101,4 +121,9 @@ void WebServer::handle_client(int client_socket) {
 
     send(client_socket, response.c_str(), response.size(), 0);
     close(client_socket);
+    
+}
+
+void WebServer::stop() {
+    close(server_fd);
 }

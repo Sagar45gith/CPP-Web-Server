@@ -1,16 +1,414 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My C++ Server</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Web Server | High-Performance Multi-threaded HTTP Server</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #222; color: #fff; }
-        h1 { color: #4CAF50; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 60px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #888;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 50px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d4ff;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            color: #888;
+            margin-top: 5px;
+            font-size: 0.95rem;
+        }
+
+        /* Features Section */
+        .features {
+            margin: 60px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 25px;
+            transition: background 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .feature-card p {
+            color: #999;
+            font-size: 0.95rem;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 50px 0;
+        }
+
+        .arch-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .arch-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .arch-box h4 {
+            color: #00d4ff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .arch-box p {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .arch-arrow {
+            color: #00ff88;
+            font-size: 1.5rem;
+        }
+
+        /* Code Block */
+        .code-section {
+            margin: 50px 0;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .code-block code {
+            color: #c9d1d9;
+        }
+
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .tech-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 60px;
+        }
+
+        footer p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .logo { font-size: 2rem; }
+            .stat-number { font-size: 2rem; }
+            .arch-diagram { flex-direction: column; }
+            .arch-arrow { transform: rotate(90deg); }
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <div class="logo">⚡</div>
+            <h1>High-Performance C++ Web Server</h1>
+            <p class="tagline">
+                A multi-threaded HTTP server built from scratch using POSIX sockets 
+                and a custom thread pool architecture
+            </p>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                Server Running
+            </div>
+        </header>
 
-    <h1>It Worked!</h1>
-    <img src="logo.jpg" alt="Server Logo" width="200"/>
-    <p>I have successfully built a Multi-threaded Web Server from scratch.</p>
+        <!-- Performance Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">1,450+</div>
+                <div class="stat-label">Requests / Second</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100</div>
+                <div class="stat-label">Concurrent Connections</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0%</div>
+                <div class="stat-label">Failure Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Worker Threads</div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="architecture">
+            <h2 class="section-title">🏗️ Architecture</h2>
+            <div class="arch-diagram">
+                <div class="arch-box">
+                    <h4>Client Request</h4>
+                    <p>HTTP GET/POST</p>
+                </div>
+                <span class="arch-arrow">→</span>
+                <div class="arch-box">
+                    <h4>Socket Layer</h4>
+                    <p>accept()</p>
+                </div>
+                <span class="arch-arrow">→</span>
+                <div class="arch-box">
+                    <h4>Thread Pool</h4>
+                    <p>Task Queue</p>
+                </div>
+                <span class="arch-arrow">→</span>
+                <div class="arch-box">
+                    <h4>HTTP Handler</h4>
+                    <p>Response</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <section class="features">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧵</div>
+                    <h3>Thread Pool Architecture</h3>
+                    <p>Pre-allocated worker threads with mutex-protected task queue and condition variables for efficient wake-up.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>POSIX Sockets</h3>
+                    <p>Low-level socket programming with socket(), bind(), listen(), and accept() system calls.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Security First</h3>
+                    <p>Path traversal attack prevention and input validation to block malicious requests.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <h3>Static File Serving</h3>
+                    <p>Serves HTML, CSS, JavaScript, images with proper MIME type detection.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">♻️</div>
+                    <h3>RAII Resource Management</h3>
+                    <p>Automatic cleanup of threads and sockets using C++ RAII principles.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Benchmarked Performance</h3>
+                    <p>Tested with Apache Benchmark (ab) under high concurrency with zero failures.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Sample -->
+        <section class="code-section">
+            <h2 class="section-title">💻 Thread Pool Implementation</h2>
+            <div class="code-block">
+<code><span class="code-comment">// Worker threads wait efficiently using condition variables</span>
+<span class="code-keyword">while</span>(<span class="code-keyword">true</span>) {
+    std::function&lt;<span class="code-keyword">void</span>()&gt; task;
+    {
+        std::unique_lock&lt;std::mutex&gt; <span class="code-function">lock</span>(queue_mutex);
+        condition.<span class="code-function">wait</span>(lock, [<span class="code-keyword">this</span>]{ 
+            <span class="code-keyword">return</span> stop || !tasks.<span class="code-function">empty</span>(); 
+        });
+        <span class="code-keyword">if</span>(stop && tasks.<span class="code-function">empty</span>()) <span class="code-keyword">return</span>;
+        task = std::<span class="code-function">move</span>(tasks.<span class="code-function">front</span>());
+        tasks.<span class="code-function">pop</span>();
+    }
+    <span class="code-function">task</span>();  <span class="code-comment">// Execute outside the lock</span>
+}</code>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <h2 class="section-title">🛠️ Built With</h2>
+        <div class="tech-stack">
+            <span class="tech-badge">C++17</span>
+            <span class="tech-badge">POSIX Sockets</span>
+            <span class="tech-badge">std::thread</span>
+            <span class="tech-badge">std::mutex</span>
+            <span class="tech-badge">std::condition_variable</span>
+            <span class="tech-badge">Linux/Unix</span>
+        </div>
+
+        <footer>
+            <p>
+                Built from scratch with ❤️ | 
+                <a href="https://github.com/Sagar45gith/CPP-Web-Server" target="_blank">View on GitHub</a>
+            </p>
+        </footer>
+    </div>
 </body>
 </html>

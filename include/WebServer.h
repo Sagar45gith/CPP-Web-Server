@@ -9,6 +9,7 @@ class WebServer {
 public:
     WebServer(int port, int thread_pool_size);
     void start(); // Start the main loop
+    void stop();
 
 private:
     int port;
