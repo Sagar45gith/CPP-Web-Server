@@ -1,46 +1,58 @@
-# High-Performance Multi-Threaded Web Server (C++)
+# ⚡ High-Performance Multi-Threaded Web Server (C++)
 
-A lightweight, high-throughput HTTP web server built from scratch in C++ using POSIX sockets. Designed to handle high concurrency through a custom Thread Pool architecture, bypassing the overhead of external frameworks.
+A lightweight, high-throughput HTTP web server built from scratch using **C++17** and **POSIX Sockets**. 
 
-![C++](https://img.shields.io/badge/Language-C++17-blue.svg)
-![Platform](https://img.shields.io/badge/Platform-Linux%20%2F%20WSL-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+Designed to demonstrate systems programming concepts including **Thread Pools**, **Mutex Locking**, **Condition Variables**, and **RAII Resource Management**. Capable of handling **2,200+ concurrent requests per second** with sub-millisecond latency.
 
-## 🚀 Key Features
-- **Custom Thread Pool:** Pre-allocated worker threads prevent the overhead of creating/destroying threads per request.
-- **Thread Safety:** Implements `std::mutex` and `std::condition_variable` to manage the task queue without race conditions.
-- **Zero-Copy Architecture:** Uses pointers and references to minimize memory overhead during request handling.
-- **Security:** Includes path traversal sanitization to prevent unauthorized file access.
-- **MIME Type Support:** Serves HTML, CSS, JS, and Images (PNG/JPG) with correct content headers.
+![Server Landing Page](./webp.jpeg) 
+*(Replace 'webp.jpeg' with your actual landing page screenshot filename if different)*
 
-## 📊 Performance Benchmarks
-Tested using **Apache Benchmark (ab)** on a standard laptop (WSL2 environment):
+---
+
+## 🚀 Performance Benchmarks
+
+Tested using **Apache Benchmark (ab)** on standard consumer hardware (Performance Mode active).
 
 | Metric | Result |
-|--------|--------|
-| **Requests Per Second** | **~1,459 req/s** |
-| **Concurrency Level** | 100 simultaneous users |
-| **Failed Requests** | **0** (0.00% Failure Rate) |
-| **Mean Time Per Request** | 0.685 ms |
+| :--- | :--- |
+| **Throughput** | **2,288 Requests / sec** |
+| **Latency per Request** | **0.437 ms** (mean) |
+| **Concurrent Users** | 100 |
+| **Failed Requests** | 0 (0% Error Rate) |
 
-*> "This server handles 1.5k requests per second without breaking a sweat, proving the efficiency of low-level systems programming."*
+> **Note:** The server outperforms basic single-threaded implementations by leveraging a pre-allocated thread pool, reducing CPU context switching overhead significantly.
 
-## 🛠️ Architecture
-The project follows a modular design:
-1.  **Server (Listener):** Binds to port 8080 and listens for incoming TCP connections.
-2.  **Dispatcher (Main Thread):** Accepts connections and immediately pushes the socket descriptor to the Task Queue.
-3.  **Thread Pool (Workers):** A fixed pool of threads (default: 4) sleeps on a Condition Variable. When a task arrives, one thread wakes up, handles the HTTP request, and goes back to sleep.
+![Benchmark Screenshot](./ab_bench.jpeg)
+*(Replace 'ab_bench.jpeg' with your actual benchmark screenshot)*
 
-## 💻 How to Run
-### Prerequisites
-- GCC Compiler (g++)
-- Make
-- Linux or WSL (Windows Subsystem for Linux)
+---
 
-### Build & Start
-```bash
-# 1. Compile the project
-make
+## 🛠️ Key Features
 
-# 2. Run the server
-./server
+* **🧵 Custom Thread Pool:** Pre-allocated worker threads (`std::thread`) that sleep when idle and wake up via `std::condition_variable` only when tasks arrive. Zero busy-waiting.
+* **🔒 Thread Safety:** Uses `std::mutex` and `std::unique_lock` to ensure safe access to the shared task queue.
+* **🔌 POSIX Networking:** Built directly on low-level Linux socket APIs (`socket`, `bind`, `listen`, `accept`).
+* **🛡️ Security First:** Custom middleware prevents **Directory Traversal Attacks** (e.g., `../../etc/passwd`) by sanitizing input paths.
+* **📂 Static File Serving:** Efficiently serves HTML, CSS, JS, and image files with automatic MIME type detection.
+* **♻️ RAII Design:** Sockets and threads are automatically managed and cleaned up, preventing memory leaks and zombie processes.
+
+---
+
+## 🏗️ Architecture
+
+The server moves away from the inefficient "Thread-Per-Client" model and uses a **Producer-Consumer** pattern:
+
+1.  **Main Thread (Producer):** Listens on Port 8080. Accepts new connections (`accept()`) and pushes the client socket into a `ThreadSafeQueue`.
+2.  **Worker Threads (Consumers):** 4 constant threads wait for the queue to perform a task.
+3.  **Synchronization:** A `condition_variable` wakes up exactly one worker when a new connection arrives.
+4.  **Processing:** The worker reads the request, determines the file path, checks for security violations, and sends the HTTP response.
+
+```mermaid
+graph LR
+    A[Client Request] -->|Port 8080| B(Main Thread)
+    B -->|Push Task| C{Task Queue}
+    C -->|Notify| D[Worker Thread 1]
+    C -->|Notify| E[Worker Thread 2]
+    C -->|Notify| F[Worker Thread 3]
+    C -->|Notify| G[Worker Thread 4]
+    D -->|HTTP Response| A
