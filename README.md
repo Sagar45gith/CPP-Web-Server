@@ -55,4 +55,8 @@ graph LR
     C -->|Notify| E[Worker Thread 2]
     C -->|Notify| F[Worker Thread 3]
     C -->|Notify| G[Worker Thread 4]
+<<<<<<< HEAD
     D -->|HTTP Response| A
+=======
+    D -->|HTTP Response| A
+>>>>>>> c6fb43c1e61f7dc14674df5ef223905642cf0d2f
