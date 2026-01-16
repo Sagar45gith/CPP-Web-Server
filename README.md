@@ -21,7 +21,7 @@ Tested using **Apache Benchmark (ab)** on standard consumer hardware (Performanc
 
 > **Note:** The server outperforms basic single-threaded implementations by leveraging a pre-allocated thread pool, reducing CPU context switching overhead significantly.
 
-![Benchmark Screenshot](./ab bench.jpeg)
+![Benchmark Screenshot](./ab.jpeg)
 
 ---
 
