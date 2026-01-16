@@ -5,7 +5,6 @@ A lightweight, high-throughput HTTP web server built from scratch using **C++17*
 Designed to demonstrate systems programming concepts including **Thread Pools**, **Mutex Locking**, **Condition Variables**, and **RAII Resource Management**. Capable of handling **2,200+ concurrent requests per second** with sub-millisecond latency.
 
 ![Server Landing Page](./webp.jpeg) 
-*(Replace 'webp.jpeg' with your actual landing page screenshot filename if different)*
 
 ---
 
@@ -22,8 +21,7 @@ Tested using **Apache Benchmark (ab)** on standard consumer hardware (Performanc
 
 > **Note:** The server outperforms basic single-threaded implementations by leveraging a pre-allocated thread pool, reducing CPU context switching overhead significantly.
 
-![Benchmark Screenshot](./ab_bench.jpeg)
-*(Replace 'ab_bench.jpeg' with your actual benchmark screenshot)*
+![Benchmark Screenshot](./ab bench.jpeg)
 
 ---
 
@@ -55,8 +53,4 @@ graph LR
     C -->|Notify| E[Worker Thread 2]
     C -->|Notify| F[Worker Thread 3]
     C -->|Notify| G[Worker Thread 4]
-<<<<<<< HEAD
     D -->|HTTP Response| A
-=======
-    D -->|HTTP Response| A
->>>>>>> c6fb43c1e61f7dc14674df5ef223905642cf0d2f
