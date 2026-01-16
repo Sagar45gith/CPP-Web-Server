@@ -1,6 +1,6 @@
 # Compiler and Flags
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -pthread -Iinclude
+CXXFLAGS = -Wall -std=c++17 -pthread -Iinclude 
 
 # Source Files and Output
 SRC = src/main.cpp src/WebServer.cpp
