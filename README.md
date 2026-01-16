@@ -4,7 +4,7 @@ A lightweight, high-throughput HTTP web server built from scratch using **C++17*
 
 Designed to demonstrate systems programming concepts including **Thread Pools**, **Mutex Locking**, **Condition Variables**, and **RAII Resource Management**. Capable of handling **2,200+ concurrent requests per second** with sub-millisecond latency.
 
-![Server Landing Page](./wbp1.jpeg) 
+![Server Landing Page](./wbp1.png) 
 
 ---
 
